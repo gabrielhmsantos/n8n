@@ -25,7 +25,18 @@ export async function apiRequest(
 	const { resourceName, apiVersion, endpoint: customEndpoint } = credentials;
 
 	// Construct Azure URL
-	const baseUrl = (customEndpoint as string) || `https://${resourceName}.openai.azure.com/openai`;
+	let baseUrl: string;
+	if (customEndpoint) {
+		// Remove trailing slash if exists
+		const cleanEndpoint = (customEndpoint as string).endsWith('/')
+			? (customEndpoint as string).slice(0, -1)
+			: (customEndpoint as string);
+
+		// Add /openai if not present (similar to LangChain behavior)
+		baseUrl = cleanEndpoint.endsWith('/openai') ? cleanEndpoint : `${cleanEndpoint}/openai`;
+	} else {
+		baseUrl = `https://${resourceName}.openai.azure.com/openai`;
+	}
 
 	const uri = `${baseUrl}${endpoint}`;
 

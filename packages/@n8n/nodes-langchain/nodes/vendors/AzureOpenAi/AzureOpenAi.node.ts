@@ -1,10 +1,12 @@
-import type { INodeTypeBaseDescription, IVersionedNodeType } from 'n8n-workflow';
+import {
+	type INodeTypeBaseDescription,
+	type IVersionedNodeType,
+	VersionedNodeType,
+} from 'n8n-workflow';
 
 import { AzureOpenAiV1 } from './v1/AzureOpenAiV1.node';
 
-export class AzureOpenAi implements IVersionedNodeType {
-	nodeVersions: IVersionedNodeType['nodeVersions'];
-
+export class AzureOpenAi extends VersionedNodeType {
 	constructor() {
 		const baseDescription: INodeTypeBaseDescription = {
 			displayName: 'Azure OpenAI',
@@ -14,10 +16,10 @@ export class AzureOpenAi implements IVersionedNodeType {
 			description: 'Interact with Azure OpenAI Assistants',
 			defaultVersion: 1,
 			codex: {
-				categories: ['AI', 'LangChain'],
+				alias: ['assistant', 'LangChain'],
+				categories: ['AI'],
 				subcategories: {
-					AI: ['Assistants'],
-					LangChain: ['Assistants'],
+					AI: ['Agents', 'Root Nodes'],
 				},
 				resources: {
 					primaryDocumentation: [
@@ -29,8 +31,10 @@ export class AzureOpenAi implements IVersionedNodeType {
 			},
 		};
 
-		this.nodeVersions = {
+		const nodeVersions: IVersionedNodeType['nodeVersions'] = {
 			1: new AzureOpenAiV1(baseDescription),
 		};
+
+		super(nodeVersions, baseDescription);
 	}
 }
