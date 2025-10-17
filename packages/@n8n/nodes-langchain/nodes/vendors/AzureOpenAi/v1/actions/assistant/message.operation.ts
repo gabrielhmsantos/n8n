@@ -66,7 +66,7 @@ const properties: INodeProperties[] = [
 		],
 		displayOptions: {
 			show: {
-				'@version': [{ _cnd: { gte: 1.6 } }],
+				'@version': [{ _cnd: { gte: 1 } }],
 			},
 		},
 		default: 'connector',
@@ -81,7 +81,7 @@ const properties: INodeProperties[] = [
 		hint: 'If the thread ID is empty or undefined a new thread will be created and included in the response',
 		displayOptions: {
 			show: {
-				'@version': [{ _cnd: { gte: 1.6 } }],
+				'@version': [{ _cnd: { gte: 1 } }],
 				memory: ['threadId'],
 			},
 		},
@@ -240,17 +240,16 @@ export async function execute(this: IExecuteFunctions, i: number): Promise<INode
 		tools: tools ?? [],
 	});
 
-	const useMemoryConnector =
-		nodeVersion >= 1.6 && this.getNodeParameter('memory', i) === 'connector';
+	const useMemoryConnector = nodeVersion >= 1 && this.getNodeParameter('memory', i) === 'connector';
 	const memory =
-		useMemoryConnector || nodeVersion < 1.6
+		useMemoryConnector || nodeVersion < 1
 			? ((await this.getInputConnectionData(NodeConnectionTypes.AiMemory, 0)) as
 					| BufferWindowMemory
 					| undefined)
 			: undefined;
 
 	const threadId =
-		nodeVersion >= 1.6 && !useMemoryConnector
+		nodeVersion >= 1 && !useMemoryConnector
 			? (this.getNodeParameter('threadId', i) as string)
 			: undefined;
 
