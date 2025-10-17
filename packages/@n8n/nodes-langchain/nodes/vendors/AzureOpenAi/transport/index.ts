@@ -46,7 +46,7 @@ export async function apiRequest(
 		'api-version': apiVersion as string,
 	};
 
-	let headers = parameters?.headers ?? {};
+	const headers = parameters?.headers ?? {};
 
 	const options = {
 		headers,
