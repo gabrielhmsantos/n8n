@@ -101,18 +101,6 @@ const properties: INodeProperties[] = [
 		default: {},
 		options: [
 			{
-				displayName: 'Base URL',
-				name: 'baseURL',
-				default: 'https://api.openai.com/v1',
-				description: 'Override the default base URL for the API',
-				type: 'string',
-				displayOptions: {
-					hide: {
-						'@version': [{ _cnd: { gte: 1.8 } }],
-					},
-				},
-			},
-			{
 				displayName: 'Max Retries',
 				name: 'maxRetries',
 				default: 2,
@@ -133,11 +121,6 @@ const properties: INodeProperties[] = [
 				default: true,
 				description:
 					'Whether to preserve the original tools of the assistant after the execution of this node, otherwise the tools will be replaced with the connected tools, if any, default is true',
-				displayOptions: {
-					show: {
-						'@version': [{ _cnd: { gte: 1.3 } }],
-					},
-				},
 			},
 		],
 	},
@@ -182,7 +165,6 @@ export async function execute(this: IExecuteFunctions, i: number): Promise<INode
 	const assistantId = this.getNodeParameter('assistantId', i, '', { extractValue: true }) as string;
 
 	const options = this.getNodeParameter('options', i, {}) as {
-		baseURL?: string;
 		maxRetries: number;
 		timeout: number;
 		preserveOriginalTools?: boolean;
@@ -190,7 +172,19 @@ export async function execute(this: IExecuteFunctions, i: number): Promise<INode
 
 	// Construct Azure baseURL
 	const { resourceName, apiKey, apiVersion, endpoint } = credentials;
-	const baseURL = (endpoint as string) || `https://${resourceName}.openai.azure.com/openai`;
+
+	let baseURL: string;
+	if (endpoint) {
+		// Remove trailing slash if exists
+		const cleanEndpoint = (endpoint as string).endsWith('/')
+			? (endpoint as string).slice(0, -1)
+			: (endpoint as string);
+
+		// Add /openai if not present (similar to LangChain behavior)
+		baseURL = cleanEndpoint.endsWith('/openai') ? cleanEndpoint : `${cleanEndpoint}/openai`;
+	} else {
+		baseURL = `https://${resourceName}.openai.azure.com/openai`;
+	}
 
 	// Create OpenAI client configured for Azure
 	const client = new OpenAIClient({
@@ -297,11 +291,7 @@ export async function execute(this: IExecuteFunctions, i: number): Promise<INode
 			}
 		}
 
-		if (
-			options.preserveOriginalTools !== false &&
-			nodeVersion >= 1.3 &&
-			(assistantTools ?? [])?.length
-		) {
+		if (options.preserveOriginalTools !== false && (assistantTools ?? [])?.length) {
 			await client.beta.assistants.update(assistantId, {
 				tools: assistantTools,
 			});
